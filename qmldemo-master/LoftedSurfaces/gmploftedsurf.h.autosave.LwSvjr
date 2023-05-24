@@ -1,0 +1,312 @@
+#ifndef GMPLOFTEDSURF_H
+#define GMPLOFTEDSURF_H
+//GM parametrics surface
+
+
+//#include"../../gmlib-master/modules/parametrics/curves/gmpbeziercurve.h"
+//#include"../../gmlib-master/modules/parametrics/curves/gmpcircle.h"
+#include "../../gmlib-master/modules/parametrics/gmpcurve.h"
+#include "../../gmlib-master/modules/parametrics/gmpsurf.h"
+#include "subpatch.h"
+
+template <typename T>
+class PLoftedSurf : public GMlib::PSurf<T,3>{
+GM_SCENEOBJECT(PLoftedSurf)
+
+public:
+    PLoftedSurf(const GMlib::DVector<GMlib::PCurve<T,3>*>& curves, bool closedV = false, bool blend = false);
+    virtual ~PLoftedSurf();
+
+    // from PSurf
+    bool isClosedU() const override;
+    bool isClosedV() const override;
+
+    void showControlSubSurf();
+
+protected:
+    // Virtual function from PSurf that has to be implemented locally
+    void eval(T u, T v, int d1, int d2, bool lu = true, bool lv = true ) const override;
+    T getStartPU() const override;
+    T getEndPU()   const override;
+    T getStartPV() const override;
+    T getEndPV()   const override;
+    T getLagrangePolynom(int i, T t, int k) const;
+    T getDLagrangePolynom(int i, T t) const; // Derevatives of lagrange polynom
+    GMlib::DVector<T> setVvalues() const;
+    GMlib::Point<T,3> getAvgPointOfCurve(GMlib::PCurve<T,3>* curve) const;
+
+    //Blending related
+    void generateControlSubSurf(GMlib::PSurf<T,3> surf);
+    void generateKnots();
+
+
+
+    // Protected data for the surface
+    GMlib::DVector<GMlib::PCurve<T,3>*> _curves; // Can be changed into std::vector
+    GMlib::DVector<T> _Vvalues; // Can be changed to std::vector
+    std::vector<float> _curvePosT {0, 0.25, 0.5, 0.75, 1};
+    bool _closedV;
+
+
+    //Blending related
+    bool _blend;
+    std::vector<GMlib::SubPatch<T>*> _controlSubSurf;
+    std::vector<T> _knotVector;
+
+};
+
+
+
+
+
+
+
+
+
+
+// Include PSweepSurf class function implementations
+//#include "gmploftedsurf.c"
+
+template <typename T>
+inline
+PLoftedSurf<T>::PLoftedSurf(const GMlib::DVector<GMlib::PCurve<T,3>*>& curves, bool closedV, bool blend){
+    _curves = curves;
+    _blend = blend;
+    _closedV = closedV;
+
+     for(int i = 0; i < _curves.getDim(); i++){
+        _curves[i]->setDomain(0.0f, 1.0f);
+    }
+
+    if(closedV){
+        _curves.append(_curves[0]);
+    }
+
+
+    if(_blend){
+        generateKnots();
+        auto surf = new PLoftedSurf<T>(curves, closedV);
+        generateControlSubSurf(surf);
+    }
+
+
+
+    _Vvalues = setVvalues(); //Must be at the end, so all the curves are taken into consideration
+}
+
+template <typename T>
+PLoftedSurf<T>::~PLoftedSurf() {}
+
+
+template<typename T>
+inline
+bool PLoftedSurf<T>::isClosedU() const {
+    for(int i = 0; i < _curves.getDim(); i++){
+        if(!_curves[i]->isClosed()){ //If one curve is not closed the surface can not be closed.
+            return _curves[i]->isClosed();
+        }
+    }
+    return _curves[0]->isClosed(); //If all curves are closed, then the surface is closed in U.
+}
+
+
+template<typename T>
+inline
+bool PLoftedSurf<T>::isClosedV() const {
+    return _closedV;
+}
+
+
+template <typename T>
+void PLoftedSurf<T>::showControlSubSurf() {
+  for (GMlib::PSurf<T, 3>* surf : _controlSubSurf) {
+    surf->setCollapsed(true);
+    surf->sample(20, 0);
+    surf->toggleDefaultVisualizer();
+    surf->setColor(GMlib::GMcolor::blueViolet());
+    this->insert(surf);
+  }
+}
+
+
+template<typename T>
+void PLoftedSurf<T>::eval(T u, T v, int d1, int d2, bool lu = true, bool lv = true ) const{
+    this->_p.setDim(d1+1,d2+1);
+
+    if(_blend){
+//        auto i = getIndex(t);
+    
+//        auto b = B(t, i);
+    
+//        auto ci_1 = getControlPoint(i - 1, t);
+//        auto ci = getControlPoint(i, t);
+    
+//        this->_p[0] = b[0] * ci_1 + b[1] * ci;
+
+    }
+    else{
+        auto S  = GMlib::Vector<T,3>(0,0,0);// = L1*c1+L2*c2...Ln*cn
+        auto Su = GMlib::Vector<T,3>(0,0,0);
+        auto Sv = GMlib::Vector<T,3>(0,0,0);
+
+
+        for(int i = 0; i < _curves.getDim(); i++){ // SUM(bi(v)*ci(u) = S       SUM(bi'(v)*ci(u) = Sv         SUM(bi(v)*ci'(u) = Su
+            auto L  = getLagrangePolynom(i, v, i);
+            auto ci = _curves[i]->evaluateParent(u,d1);
+            S +=  L*ci[0];
+
+
+
+            //Derivatives
+            if( this->_dm == GMlib::GM_DERIVATION_EXPLICIT){
+                if(d1){
+                    Su +=  L*ci[1]; //L(i)*ci'(u)
+                }
+                if(d2){
+                    auto dL = getDLagrangePolynom(i, v);
+                    Sv +=  dL*ci[0]; //L'(i)*ci(u)
+                }
+            }
+        }
+
+        this->_p[0][0] = S;
+        this->_p[1][0] = Su;
+        this->_p[0][1] = Sv;
+    }
+}
+
+
+template <typename T>
+T PLoftedSurf<T>::getStartPU() const {
+  return _curves[0]->getParStart();
+//    return _curve1->getParStart();
+}
+
+
+template <typename T>
+T PLoftedSurf<T>::getEndPU() const {
+  return _curves[0]->getParEnd();
+//    return _curve1->getParEnd();
+}
+
+
+template <typename T>
+T PLoftedSurf<T>::getStartPV() const {
+//  return _spine->getParStart();
+    return _Vvalues[0];
+//    return _curve2->getParStart();
+}
+
+
+template <typename T>
+T PLoftedSurf<T>::getEndPV() const {
+//  return _spine->getParEnd();
+    return _Vvalues[_Vvalues.getDim()-1];
+//    return _curve2->getParEnd();
+}
+
+template <typename T>
+GMlib::Point<T,3> PLoftedSurf<T>::getAvgPointOfCurve(GMlib::PCurve<T,3>* curve) const{
+//    This would be best in PCurve, but would prefer to not touch GMlib too much
+    GMlib::Point<T,3> p = curve->getPosition(_curvePosT[0]);
+
+    for(int i = 1; i < _curvePosT.size(); i++){
+        p = p + curve->getPosition(_curvePosT[i]);
+    }
+
+    return p/_curvePosT.size();
+}
+
+
+template <typename T>
+GMlib::DVector<T> PLoftedSurf<T>::setVvalues() const{
+//    Need to get avg coordinate of each curve and add all
+//    their distences to a tot length
+
+//    Then divide each lenght with the tot length to get the "prosent" of each curve
+    GMlib::DVector<T> V_values;
+    V_values.append(0);
+
+    for(int i = 1; i < _curves.getDim(); i++){
+        auto p_i = getAvgPointOfCurve(_curves[i]);
+        auto p_i1 = getAvgPointOfCurve(_curves[i-1]);
+
+        GMlib::Vector<T,3> d = p_i-p_i1;
+        auto Vvalue_i =  d.getLength() + V_values[i-1];
+        V_values.append(Vvalue_i);
+    }
+    return V_values/V_values[V_values.getDim()-1]; //Why i choose Dvector and not std::vector
+}
+
+
+template <typename T>
+T PLoftedSurf<T>::getLagrangePolynom(int i, T t, int k) const {
+//    Gets the lagrange polynomial for L(d,i)=(t-Vj)/(Vi-Vj)
+//    k is only !=i, if this is used in derivative of L
+    T L = 1;
+
+    for(int j = 0; j < _curves.getDim(); j++){
+        if(j==i || j==k){
+            continue;
+        }
+        auto L_part = (t - _Vvalues[j])/(_Vvalues[i] - _Vvalues[j]);
+        L = L * L_part;
+    }
+    return L;
+}
+
+
+template <typename T>
+T PLoftedSurf<T>::getDLagrangePolynom(int i, T t) const {
+//    Gets the lagrange polynomial for L'(d,i)=(1)/(t-Vj)
+    T dL = 1;
+
+    for(int j = 0; j < _curves.getDim(); j++){
+        if(j==i){
+            continue;
+        }
+        auto dL_part = T(1)/(_Vvalues[i] - _Vvalues[j]);
+        auto L = getLagrangePolynom(i, t, j);
+
+        dL += dL_part * L;
+    }
+    return dL;
+}
+
+template <typename T>
+void PLoftedSurf<T>::generateControlSubSurf(GMlib::PSurf<T,3> surf){
+    int n = _Vvalues.getDim();
+    _controlSubSurf.resize(n);
+
+    for(int i = 0; i < n; i++){
+        //                              SubPatch( PSurf<T,3>* s, T u, T v);
+        _controlSubSurf[i] = new GMlib::SubPatch<T>(surf, T(0.5), _Vvalues[i]);
+    }
+
+    if(_closedV){ // If closed, start and end is the same
+        _controlSubSurf[n-1] = _controlSubSurf[0];
+    }
+}
+
+template <typename T>
+void PLoftedSurf<T>::generateKnots(){
+    _knotVector.clear();
+
+    _knotVector.push_back(_Vvalues[0]);
+    _knotVector.push_back(_Vvalues[0]);
+
+    for (int i = 1; i < _Vvalues.getDim(); i++) {
+      _knotVector.push_back(_Vvalues[i]);
+    }
+
+    _knotVector.push_back(_Vvalues[_Vvalues.getDim()-1]);
+    _knotVector.push_back(_Vvalues[_Vvalues.getDim()-1]);
+
+    if (_closed) {
+        _knotVector[0] = _start - (_Vvalues[_Vvalues.getDim()-1] - _Vvalues[_Vvalues.getDim()-2]); //start - (distance between last and 2nd last knot)
+        _knotVector[n_ + 2] = _end + (_Vvalues[1] - _Vvalues[0]); //end + (distance between first and 2nd knot)
+    }
+}
+
+
+#endif // GMPLOFTEDSURF_H

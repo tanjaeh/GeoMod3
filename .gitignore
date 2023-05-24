@@ -1,0 +1,41 @@
+# Build directory
+BUILD/
+
+# general temp files
+*.swp
+*~
+
+# Qt creator
+*.user
+
+# Windows (cmake generated I believe)
+*.tex.*
+
+
+# KDevelop 4
+*.kdev4
+.kdev4/
+
+# Kate
+*.kate-swp
+
+# Latex
+*.aux 
+*.bit 
+*.blg 
+*.bbl 
+*.lof 
+*.log 
+*.lot 
+*.glo 
+*.glx 
+*.gxg 
+*.gxs 
+*.idx 
+*.ilg 
+*.ind 
+*.out 
+*.url 
+*.svn 
+*.toc
+*.synctex.gz
