@@ -72,11 +72,11 @@ void Scenario::initializeScenario() {
   mm.set(45.0);
 
 bool bezierCurves = false;
-bool circleCurves = false;
-bool mix = true;
+bool circleCurves = true;
+bool mix = false;
 bool vClosedBezier = false;
 
-bool V_closed = false;
+bool V_closed = true;
 bool blending = true;
 bool showSubSurf = false;
 bool showCurves = true;
@@ -167,19 +167,19 @@ if(circleCurves){
 
     auto circle2 = new GMlib::PCircle<float>(radius/2);
     circle2->translate(GMlib::Vector<float,3>(0.0f, 0.0f, 2.0f));
-    circle2->setColor(GMlib::GMcolor::orange());
+//    circle2->setColor(GMlib::GMcolor::orange());
     circle2->toggleDefaultVisualizer();
     circle2->sample(60,0);
 
     auto circle3 = new GMlib::PCircle<float>(radius/3);
     circle3->translate(GMlib::Vector<float,3>(0.0f, 0.0f, 6.0f));
-    circle3->setColor(GMlib::GMcolor::yellow());
+//    circle3->setColor(GMlib::GMcolor::yellow());
     circle3->toggleDefaultVisualizer();
     circle3->sample(60,0);
 
     auto circle4 = new GMlib::PCircle<float>(radius*1.5);
     circle4->translate(GMlib::Vector<float,3>(0.0f, 0.0f, 15.0f));
-    circle4->setColor(GMlib::GMcolor::green());
+//    circle4->setColor(GMlib::GMcolor::green());
     circle4->toggleDefaultVisualizer();
     circle4->sample(60,0);
 
@@ -320,11 +320,11 @@ loftedsurf->showControlSubSurf();
 this->scene()->insert(loftedsurf);
 
 std::vector<GMlib::Material> rainbow;
-rainbow.push_back(GMlib::GMmaterial::ruby());
-rainbow.push_back(GMlib::GMmaterial::bronze());
-rainbow.push_back(GMlib::GMmaterial::gold());
+rainbow.push_back(GMlib::GMmaterial::chrome());
 rainbow.push_back(GMlib::GMmaterial::emerald());
+rainbow.push_back(GMlib::GMmaterial::ruby());
 rainbow.push_back(GMlib::GMmaterial::sapphire());
+rainbow.push_back(GMlib::GMmaterial::plastic());
 rainbow.push_back(GMlib::GMmaterial::obsidian());
 rainbow.push_back(GMlib::GMmaterial::pearl());
 
@@ -334,7 +334,7 @@ if(showSubSurf){
     for(int i = 0; i < loftedsurf->_subS.size(); i++){
         loftedsurf->_subS[i]->toggleDefaultVisualizer();
 //        loftedsurf->_subS[i]->insertVisualizer(n_viz);
-        loftedsurf->_subS[i]->insertVisualizer(d_viz);
+//        loftedsurf->_subS[i]->insertVisualizer(d_viz);
         loftedsurf->_subS[i]->setMaterial(rainbow[i]);
         loftedsurf->_subS[i]->sample(sample,sample,1,1);
         loftedsurf->_subS[i]->showSelectors();

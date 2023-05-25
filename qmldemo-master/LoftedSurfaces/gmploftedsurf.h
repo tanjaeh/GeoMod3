@@ -89,7 +89,6 @@ PLoftedSurf<T>::PLoftedSurf(const std::vector<GMlib::PCurve<T,3>*>& curves, int 
 
     for(int i = 0; i < _curves.size(); i++){
         _curves[i]->setDomain(0.0f, 1.0f);
-        std::cout << _curves[i]->getPos() << std::endl;
     }
 
     if(_closedV){
