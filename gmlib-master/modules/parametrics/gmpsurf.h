@@ -301,6 +301,7 @@ namespace GMlib {
 
     void              _eval( T u, T v, int d1, int d2 ) const;
     void              _computeEFGefg( T u, T v, T& E, T& F, T& G, T& e, T& f, T& g ) const;
+//    void              _performeScale(DMatrix<Vector<T,n>>& p) const;
 
   }; // END class PSurf
 

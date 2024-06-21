@@ -142,6 +142,8 @@ namespace GMlib {
       for( int j = 0; j < p.getDim2(); j++ )
         p[i][j] = _mat * _p[i][j];
 
+
+//    _performeScale(p);
     return p;
   }
 
@@ -1138,5 +1140,16 @@ namespace GMlib {
       g = N  * dvv;
   }
 
+//  template <typename T, int n>
+//  inline
+//  void PSurf<T,n>::_performeScale(DMatrix<Vector<T,n>>& p) const {
+
+//    if( isScaled() ) {
+//      Point<T,3> s = getScale();
+//      for(int i=0; i<p.getDim1(); i++)
+//        for(int j=0; j<p.getDim2(); j++)
+//         p[i][j] %= s;
+//    }
+//  }
 
  } // END namespace GMlib

@@ -235,8 +235,8 @@ void PLoftedSurf<T>::eval(T u, T v, int d1, int d2, bool lu = true, bool lv = tr
 
 
         this->_p[0][0] = S;
-        this->_p[1][0] = Su;
-        this->_p[0][1] = Sv;
+        this->_p[0][1] = Su;
+        this->_p[1][0] = Sv;
 
         this->_p[0][0] -= _trans;
     }
@@ -269,14 +269,15 @@ T PLoftedSurf<T>::getEndPV() const {
 template <typename T>
 GMlib::Point<T,3> PLoftedSurf<T>::getAvgPointOfCurve(GMlib::PCurve<T,3>* curve) const{
 //    This would be best in PCurve, but would prefer to not touch GMlib too much
+    GMlib::Point<T,3> p_base = curve->getPos();
     GMlib::Point<T,3> p = curve->getPosition(_curvePosT[0]);
-//    GMlib::Point<T,3> p = curve->getPos();
 
     for(int i = 1; i < _curvePosT.size(); i++){
         p = p + curve->getPosition(_curvePosT[i]);
     }
 
-    return p/_curvePosT.size();
+    return (p/_curvePosT.size()) + p_base;
+
 }
 
 
@@ -296,10 +297,10 @@ std::vector<T> PLoftedSurf<T>::setVvalues() const{
     }
 
     for(int i = 1; i < _curves.size(); i++){
-//        auto p_i = getAvgPointOfCurve(_curves[i]);
-//        auto p_i1 = getAvgPointOfCurve(_curves[i-1]);
-        auto p_i = _curves[i]->getPos();
-        auto p_i1 = _curves[i-1]->getPos();
+        auto p_i = getAvgPointOfCurve(_curves[i]);
+        auto p_i1 = getAvgPointOfCurve(_curves[i-1]);
+//        auto p_i = _curves[i]->getPos();
+//        auto p_i1 = _curves[i-1]->getPos();
 
 
         GMlib::Vector<T,3> d = p_i-p_i1;

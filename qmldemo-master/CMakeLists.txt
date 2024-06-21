@@ -131,6 +131,11 @@ target_sources( ${PROJECT_NAME} PRIVATE
   application/guiapplication.cpp
   application/window.cpp
 
+  LoftedSurfaces/gmploftedsurf.h
+  LoftedSurfaces/astroidCurve.h
+  LoftedSurfaces/astroidCurve.c
+
+
   application/main.cpp
 
   scenario.cpp
