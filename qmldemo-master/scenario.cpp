@@ -69,14 +69,16 @@ bool bezierCurves = false;
 bool circleCurves = false;
 bool mix = false;
 bool vClosedBezier = false;
-bool longsurf = true;
+bool longsurf = false;
 bool astroid_cir = false;
+bool closed_closed = true;
 
-bool V_closed = false;
+bool V_closed = true;
 bool blending = true;
-bool showSubSurf = false;
+bool showSubSurf = true;
 bool showCurves = false;
-bool affine_trans = true;
+bool affine_trans = false;
+bool extra_surf = false;
 
 
 // Insert a light
@@ -500,6 +502,62 @@ if(astroid_cir){
 
 }
 
+
+if(closed_closed){
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve2(5);
+    controlPointsCurve2[0] = GMlib::Vector<float,3>(-1, -4, 0);
+    controlPointsCurve2[1] = GMlib::Vector<float,3>(6, 1, 0);
+    controlPointsCurve2[2] = GMlib::Vector<float,3>(5, 3, 0);
+    controlPointsCurve2[3] = GMlib::Vector<float,3>(7, 5, 0);
+    controlPointsCurve2[4] = GMlib::Vector<float,3>(3, 6, 0);
+
+
+    float radius = 2.3f;
+    auto circle1 = new GMlib::PCircle<float>(radius);
+    circle1->rotate(M_PI, GMlib::Vector<float, 3>(0.0f, 1.0f, 0.0f));
+    circle1->translate(GMlib::Vector<float,3>(10.0f, 0.0f, 0.0f));
+    circle1->toggleDefaultVisualizer();
+    circle1->sample(60,0);
+
+
+    auto circle2 = new GMlib::PCircle<float>(radius);
+    circle2->rotate(M_PI*-0.5, GMlib::Vector<float, 3>(0.0f, 1.0f, 0.0f));
+    circle2->translate(GMlib::Vector<float,3>(10.0f, 0.0f, 5.0f));
+    circle2->toggleDefaultVisualizer();
+    circle2->sample(60,0);
+
+
+
+    auto astroid = new AstroidCurve<float>(4.0f, 4.0f);
+    astroid->rotate(M_PI * -0.5, GMlib::Vector<float, 3>(1.0f, 0.0f, 0.0f));
+    // astroid->rotate(M_PI * 0.75, GMlib::Vector<float, 3>(0.0f, 1.0f, 0.0f));
+    // astroid->translate(GMlib::Vector<float,3>(0.0f, -10.0f, 0.0f));
+    astroid->toggleDefaultVisualizer();
+    astroid->sample(60,60);
+
+    auto circle4 = new GMlib::PCircle<float>(radius*1.2f);
+    circle4->rotate(M_PI*0.5, GMlib::Vector<float, 3>(0.0f, 1.0f, 0.0f));
+    circle4->translate(GMlib::Vector<float,3>(10.0f, 0.0f, -5.0f));
+    circle4->toggleDefaultVisualizer();
+    circle4->sample(60,0);
+
+
+    if(showCurves){
+        this->scene()->insert(circle1);
+        this->scene()->insert(circle2);
+        this->scene()->insert(astroid);
+        this->scene()->insert(circle4);
+    }
+
+
+    loftedBaseCurves[0] = circle1;
+    loftedBaseCurves[1] = circle2;
+    loftedBaseCurves[2] = astroid;
+    loftedBaseCurves[3] = circle4;
+
+
+}
+
 auto n_viz = new GMlib::PSurfNormalsVisualizer<float,3>();
 auto d_viz = new GMlib::PSurfDerivativesVisualizer<float,3>(0,1);
 
@@ -512,6 +570,20 @@ loftedsurf->sample(sample,sample,1,1);
     loftedsurf->showControlSubSurf(); //On to be able to apply affine transformation
  }
 this->scene()->insert(loftedsurf);
+
+ if(extra_surf){
+    auto extrasurf = new PLoftedSurf<float>(loftedBaseCurves, sample, V_closed, blending);
+    extrasurf->toggleDefaultVisualizer();
+    //loftedsurf->insertVisualizer(n_viz);
+    extrasurf->sample(sample,sample,1,1);
+    if(affine_trans){
+        extrasurf->showControlSubSurf(); //On to be able to apply affine transformation
+    }
+    extrasurf->translate(GMlib::Vector<float,3>(10.0f, 0.0f, 0.0f));
+    this->scene()->insert(extrasurf);
+}
+
+
 
 std::vector<GMlib::Material> rainbow;
 rainbow.push_back(GMlib::GMmaterial::chrome());
