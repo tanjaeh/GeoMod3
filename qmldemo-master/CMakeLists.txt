@@ -8,7 +8,10 @@ cmake_minimum_required(VERSION 3.11)
 project(QmlDemo VERSION 0.2.0 LANGUAGES CXX)
 
 # Add executable target
-add_executable( ${PROJECT_NAME} )
+add_executable( ${PROJECT_NAME}
+    Visualizer/zebra_visualizer.h
+    Visualizer/test_visualizer.h
+    Visualizer/Curvature_analysis_visualizer.h )
 
 
 
@@ -134,6 +137,8 @@ target_sources( ${PROJECT_NAME} PRIVATE
   LoftedSurfaces/gmploftedsurf.h
   LoftedSurfaces/astroidCurve.h
   LoftedSurfaces/astroidCurve.c
+  Visualizer/zebra_visualizer.h
+  Visualizer/test_visualizer.h
 
 
   application/main.cpp

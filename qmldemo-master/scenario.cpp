@@ -9,8 +9,12 @@
 #include"../../gmlib-master/modules/parametrics/curves/gmpcircle.h"
 #include "../../gmlib-master/modules/parametrics/visualizers/gmpsurfnormalsvisualizer.h"
 #include "../../gmlib-master/modules/parametrics/visualizers/gmpsurfderivativesvisualizer.h"
-
-
+#include "../../gmlib-master/modules/parametrics/visualizers/gmpsurfnormalsvisualizer.h"
+#include "../../gmlib-master/modules/parametrics/visualizers/gmpsurfdefaultvisualizer.h"
+#include "../../gmlib-master/modules/parametrics/visualizers/gmpsurfcontoursvisualizer.h"
+#include "Visualizer/zebra_visualizer.h"
+#include "Visualizer/Curvature_analysis_visualizer.h"
+#include "Visualizer/test_visualizer.h"
 // hidmanager
 #include "hidmanager/defaulthidmanager.h"
 
@@ -19,6 +23,7 @@
 #include <scene/sceneobjects/gmpointlightg.h>
 #include <scene/sceneobjects/gmpathtrack.h>
 #include <scene/sceneobjects/gmpathtrackarrows.h>
+
 
 // qt
 #include <QQuickItem>
@@ -65,20 +70,21 @@ void Scenario::initializeScenario() {
   GMlib::Material mm(GMlib::GMmaterial::polishedBronze());
   mm.set(45.0);
 
-bool bezierCurves = false;
+bool bezierCurves = true;
 bool circleCurves = false;
 bool mix = false;
 bool vClosedBezier = false;
 bool longsurf = false;
 bool astroid_cir = false;
-bool closed_closed = true;
+bool closed_closed = false;
 
-bool V_closed = true;
+bool V_closed = false;
 bool blending = true;
-bool showSubSurf = true;
-bool showCurves = false;
+bool showSubSurf = false;
+bool showCurves = true;
 bool affine_trans = false;
 bool extra_surf = false;
+bool default_vizu = false;
 
 
 // Insert a light
@@ -141,6 +147,7 @@ if(bezierCurves){
     //  Lofted test
       auto bezier1 = new GMlib::PBezierCurve<float>(controlPointsCurve1);
       bezier1->toggleDefaultVisualizer();
+
       bezier1->sample(60,0);
 
 
@@ -563,7 +570,18 @@ auto d_viz = new GMlib::PSurfDerivativesVisualizer<float,3>(0,1);
 
 int sample = 100;
 auto loftedsurf = new PLoftedSurf<float>(loftedBaseCurves, sample, V_closed, blending);
-loftedsurf->toggleDefaultVisualizer();
+
+if(showSubSurf||default_vizu){
+   loftedsurf->toggleDefaultVisualizer();
+}
+else{
+    // loftedsurf->insertVisualizer(new PSurfZebraVisualizer<float, 3>());
+    loftedsurf->insertVisualizer(new PSurfCurvatureVisualizer<float, 3>());
+    // loftedsurf->insertVisualizer(new GMlib::PSurfContoursVisualizer<float, 3>());
+}
+//
+// loftedsurf->insertVisualizer(new GMlib::PSurfZebraVisualizerTEST<float, 3>());
+// loftedsurf->insertVisualizer(new GMlib::PSurfNormalsVisualizer<float, 3>());
 //loftedsurf->insertVisualizer(n_viz);
 loftedsurf->sample(sample,sample,1,1);
  if(affine_trans){
@@ -605,14 +623,17 @@ rainbow.push_back(GMlib::GMmaterial::pearl());
 
 if(showSubSurf){
     for(int i = 0; i < loftedsurf->_subS.size(); i++){
-        loftedsurf->_subS[i]->toggleDefaultVisualizer();
+        // loftedsurf->_subS[i]->toggleDefaultVisualizer();
+        loftedsurf->_subS[i]->insertVisualizer(new GMlib::PSurfDefaultVisualizer<float, 3>());
+        // loftedsurf->_subS[i]->insertVisualizer(new GMlib::PSurfNormalsVisualizer<float, 3>());
        // loftedsurf->_subS[i]->insertVisualizer(n_viz);
        // loftedsurf->_subS[i]->insertVisualizer(d_viz);
+        // loftedsurf->_subS[i]->enableDefaultVisualizer();
         loftedsurf->_subS[i]->setMaterial(rainbow[i]);
         loftedsurf->_subS[i]->sample(sample,sample,1,1);
         loftedsurf->_subS[i]->showSelectors();
          if(!affine_trans){
-             loftedsurf->_subS[i]->translate(GMlib::Vector<float,3>( 0.0f, 10.0f * std::pow(-1,i), 0.0f));
+             loftedsurf->_subS[i]->translate(GMlib::Vector<float,3>( 0.0f, 0.0f, 27.0f * std::pow(-1,i)));
          }
         this->scene()->insert(loftedsurf->_subS[i]);
     }

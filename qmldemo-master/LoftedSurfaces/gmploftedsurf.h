@@ -7,6 +7,8 @@
 //#include"../../gmlib-master/modules/parametrics/curves/gmpcircle.h"
 #include "../../gmlib-master/modules/parametrics/gmpcurve.h"
 #include "../../gmlib-master/modules/parametrics/gmpsurf.h"
+#include "../../gmlib-master/modules/parametrics/evaluators/gmerbsevaluator.h"
+
 //#include "subpatch.h"
 
 template <typename T>
@@ -44,6 +46,7 @@ protected:
     T W(int i, T t) const;
     T dW(int i, T t) const;
     GMlib::Vector<T,2> B_polynomial_function(T t) const;
+    GMlib::Vector<T,2> ERBS_function(T t) const;
     int getIndex(T t) const;
 
 
@@ -56,7 +59,8 @@ protected:
     int _sample;
     T _start;
     T _end;
-
+    //GMlib::ERBSEvaluator<T> const evaluator;
+    GMlib::BasisEvaluator<long double>* _evaluator;
 
     //Blending related
     bool _blend;
@@ -86,6 +90,7 @@ PLoftedSurf<T>::PLoftedSurf(const std::vector<GMlib::PCurve<T,3>*>& curves, int 
     _blend = blend;
     _closedV = closedV;
     _sample = sample;
+    _evaluator = new GMlib::ERBSEvaluator<long double>();
 
     for(int i = 0; i < _curves.size(); i++){
         _curves[i]->setDomain(0.0f, 1.0f);
@@ -119,6 +124,7 @@ PLoftedSurf<T>::PLoftedSurf(const std::vector<GMlib::PCurve<T,3>*>& curves, std:
     _blend = false;
     _closedV = false;
     _Vvalues = Vvalues;
+    _evaluator = new GMlib::ERBSEvaluator<long double>();
 
     _start = _Vvalues[0];
     _end = _Vvalues[_Vvalues.size()-1];
@@ -319,45 +325,6 @@ std::vector<T> PLoftedSurf<T>::setVvalues() const{
     }
 
     return V_values;
-
-
-//    GMlib::DVector<T> V_values;
-//    V_values.append(0);
-
-//    if(_blend){
-//        V_values.append(0);
-//    }
-
-//    for(int i = 1; i < _curves.size(); i++){
-//        auto p_i = getAvgPointOfCurve(_curves[i]);
-//        auto p_i1 = getAvgPointOfCurve(_curves[i-1]);
-
-//        GMlib::Vector<T,3> d = p_i-p_i1;
-//        auto dLength = d.getLength();
-//        auto Vvalue_i =  dLength + V_values[i-1];
-//        V_values.append(Vvalue_i);
-//    }
-
-//    if(_blend){
-//        V_values.append(V_values[V_values.getDim()-1]);
-
-//        if (_closedV) {
-////            V_values[0] = V_values[V_values.getDim()-1]; //start - (distance between last and 2nd last knot)
-////            V_values[V_values.getDim()-1] = V_values[1]; //end + (distance between first and 2nd knot)
-//            V_values[0] = V_values[0] - (V_values[V_values.getDim()-2] - V_values[V_values.getDim()-3]); //start - (distance between last and 2nd last knot)
-//            V_values[V_values.getDim()-1] = V_values[V_values.getDim()-1] + (V_values[2] - V_values[1]); //end + (distance between first and 2nd knot)
-//        }
-//    }
-
-
-//    V_values = V_values/V_values[V_values.getDim()-2]; //Why i choose Dvector and not std::vector
-
-//    std::vector<T> out;
-//    for(int i = 0; i < V_values.getDim(); i++){
-//        out.push_back(V_values[i]);
-//    }
-
-//    return  out;
 }
 
 
@@ -438,8 +405,14 @@ void PLoftedSurf<T>::generateSubSurfs(){
 
 template <typename T>
 GMlib::Vector<T,3> PLoftedSurf<T>::blend(T t, int i) const{
-    GMlib::Vector<T,2> Bow1 = B_polynomial_function(W(i, t));
-    GMlib::Vector<T,2> Bodw1 = B_polynomial_function(dW(i, t));
+    // GMlib::Vector<T,2> Bow1 = B_polynomial_function(W(i, t));
+    // GMlib::Vector<T,2> Bodw1 = B_polynomial_function(dW(i, t));
+
+    _evaluator->set(_Vvalues[i], _Vvalues[i+1] - _Vvalues[i]);
+    // _evaluator->set(dW(i, t), dW(i+1, t) - dW(i, t));
+
+    GMlib::Vector<T,2> Bow1 = ERBS_function(t);
+    GMlib::Vector<T,2> Bodw1 = ERBS_function(t);
 
     return GMlib::Vector<T,3>(1 - Bow1[0], Bow1[0], Bow1[1] + Bodw1[0]);
 }
@@ -447,6 +420,15 @@ GMlib::Vector<T,3> PLoftedSurf<T>::blend(T t, int i) const{
 template <typename T>
 GMlib::Vector<T,2> PLoftedSurf<T>::B_polynomial_function(T t) const {
     return GMlib::Vector<T,2>(3*t*t - 2*t*t*t, 6*t - 6*t*t);
+}
+
+template <typename T>
+GMlib::Vector<T,2> PLoftedSurf<T>::ERBS_function(T t) const {
+    auto value = _evaluator->getScale1();
+
+    auto test1 = (*_evaluator)(t);
+
+    return GMlib::Vector<T,2>(test1, _evaluator->getDer1());
 }
 
 template <typename T>
@@ -466,8 +448,10 @@ int PLoftedSurf<T>::getIndex(T t) const{
     }
     else {
         auto const next = std::upper_bound(_Vvalues.begin(), _Vvalues.end(), t);
-        auto n = (_closedV ? 1 : 1);
-        return std::distance(_Vvalues.begin(), next) - n;
+        // auto n = (_closedV ? 1 : 1); //HUH???
+        // return std::distance(_Vvalues.begin(), next - n);
+
+        return std::distance(_Vvalues.begin(), next - 1);
     }
 }
 
