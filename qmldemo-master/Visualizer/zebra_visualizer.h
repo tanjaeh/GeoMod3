@@ -89,6 +89,7 @@ void PSurfZebraVisualizer<T,n>::render( const GMlib::SceneObject* obj, const GMl
     const GMlib::HqMatrix<float,3> &mvmat = obj->getModelViewMatrix(cam);
     const GMlib::HqMatrix<float,3> &pmat  = obj->getProjectionMatrix(cam);
     //    const SqMatrix<float,3> &nmat = obj->getNormalMatrix(cam);
+    auto cam_pos = cam->getPos();
 
     GMlib::SqMatrix<float,3>        nmat = mvmat.getRotationMatrix();
     //    nmat.invertOrthoNormal();
@@ -102,6 +103,9 @@ void PSurfZebraVisualizer<T,n>::render( const GMlib::SceneObject* obj, const GMl
         _prog.uniform( "u_mvmat", mvmat );
         _prog.uniform( "u_mvpmat", pmat * mvmat );
         _prog.uniform( "u_nmat", nmat );
+
+        // Cam pos
+        _prog.uniform( "u_cam_pos", cam_pos );
 
         // Lights
         _prog.bindBufferBase( "DirectionalLights",  renderer->getDirectionalLightUBO(), 0 );
@@ -190,6 +194,7 @@ void PSurfZebraVisualizer<T,n>::initShaderProgram() {
         GMlib::GL::OpenGLManager::glslDefHeaderVersionSource() +
 
         "uniform mat4 u_mvmat, u_mvpmat;\n"
+        "uniform vec3      u_cam_pos;\n"
         "\n"
         "in vec4 in_vertex;\n"
         "in vec2 in_tex;\n"

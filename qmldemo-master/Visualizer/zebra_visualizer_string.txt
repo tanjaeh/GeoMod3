@@ -72,7 +72,7 @@ luminosityFromAttenuation(PointLight light, vec3 frag_pos) {
     constant +     linear * 1.0/dist +    quadratic * 1.0/(dist*dist);}
 
 vec3
-blinnPhongLighting( PointLight light, Material mat, vec3 frag_pos, vec3 N ) { 
+MYblinnPhongLighting( PointLight light, Material mat, vec3 frag_pos, vec3 N ) {
 
   vec3 light_dir = normalize( light.position- frag_pos ); 
 
@@ -121,7 +121,7 @@ correctGamma(vec3 linear_color, float screen_gamma) {
 }
 
 vec4
-computeBlinnPhongLighting(Material mat, vec3 pos, vec3 normal ) {
+MYcomputeBlinnPhongLighting(Material mat, vec3 pos, vec3 normal ) {
 
   vec3 color = vec3(0);
 
@@ -131,11 +131,11 @@ computeBlinnPhongLighting(Material mat, vec3 pos, vec3 normal ) {
 
   // Compute pointlight contribution
   for( uint i = uint(0); i < u_pointlights.info.no_lights; ++i )
-    color += blinnPhongLighting( u_pointlights.lights[i], mat, pos, normal );
+    color += MYblinnPhongLighting( u_pointlights.lights[i], mat, pos, normal );
 
   // Compute spotlight contribution
   for( uint i = uint(0); i < u_spotlights.info.no_lights; ++i )
-    color += blinnPhongLighting( u_spotlights.lights[i].pointlight, mat, pos, normal ) * spotCutoffFactor( u_spotlights.lights[i], pos ); 
+    color += MYblinnPhongLighting( u_spotlights.lights[i].pointlight, mat, pos, normal ) * spotCutoffFactor( u_spotlights.lights[i], pos );
 
   return vec4(correctGamma(color.rgb,2.2),mat.diffuse.a);
 }
@@ -143,6 +143,8 @@ computeBlinnPhongLighting(Material mat, vec3 pos, vec3 normal ) {
 uniform sampler2D u_nmap;
 uniform mat4      u_mvmat;
 uniform mat3      u_nmat;
+
+uniform vec3      u_cam_pos;
 
 uniform vec4      u_mat_amb;
 uniform vec4      u_mat_dif;
@@ -165,7 +167,7 @@ void main() {
   mat.specular  = u_mat_spc;
   mat.shininess = u_mat_shi;
 
-  gl_FragColor = computeBlinnPhongLighting( mat, ex_pos, normal );
+  gl_FragColor = MYcomputeBlinnPhongLighting( mat, ex_pos, normal );
 
 /*
 float stripeWidth = 1.1;
@@ -174,12 +176,17 @@ float stripeWidth = 1.1;
    }
 */
 
-float stripeFrequency = 500;
-float pattern = sin(ex_pos.y * stripeFrequency) /** sin(ex_pos.x * stripeFrequency)*/; //Horisontal stripes
-//float pattern = sin(ex_pos.x * stripeFrequency + ex_pos.y * stripeFrequency); //Diagonal stripes
-//float pattern = sin((length(vec2(ex_pos.x, ex_pos.y)) - 0.5) * stripeFrequency);  //Circles
+vec3 viewDir = normalize(u_cam_pos - ex_pos);
 
-float zebra = step(0.3, pattern);
+float stripeFrequency = 2500;
+//float pattern = sin(ex_pos.y * stripeFrequency) /** sin(ex_pos.x * stripeFrequency)*/; //Horisontal stripes
+//float pattern = sin(viewDir.z * stripeFrequency);
+//float pattern = sin(ex_pos.x * stripeFrequency + ex_pos.y * stripeFrequency); //Diagonal stripes
+float pattern = sin(length(vec2(viewDir.x, viewDir.y)) * stripeFrequency); //Diagonal stripes
+//float pattern = sin((length(vec2(ex_pos.x, ex_pos.y)) - 0.5) * stripeFrequency);  //Circles
+//float pattern = sin((length(vec2(viewDir.x, viewDir.y)) - 0.5) * stripeFrequency);  //Circles
+
+float zebra = step(0.5, pattern);
 
 
 gl_FragColor = vec4(vec3(zebra), 1.0);

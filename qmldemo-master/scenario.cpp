@@ -61,6 +61,7 @@ void Scenario::initializeScenario() {
   proj_rcpair.renderer->reshape( GMlib::Vector<int,2>(init_viewport_size, init_viewport_size) );
 
 
+
   /***************************************************************************
    *                                                                         *
    * Standar example, including path track and path track arrows             *
@@ -70,18 +71,19 @@ void Scenario::initializeScenario() {
   GMlib::Material mm(GMlib::GMmaterial::polishedBronze());
   mm.set(45.0);
 
-bool bezierCurves = true;
+bool bezierCurves = false;
 bool circleCurves = false;
 bool mix = false;
-bool vClosedBezier = false;
+bool vClosedBezier = true;
 bool longsurf = false;
 bool astroid_cir = false;
 bool closed_closed = false;
+bool complex_surf = false;
 
-bool V_closed = false;
+bool V_closed = true;
 bool blending = true;
 bool showSubSurf = false;
-bool showCurves = true;
+bool showCurves = false;
 bool affine_trans = false;
 bool extra_surf = false;
 bool default_vizu = false;
@@ -98,7 +100,9 @@ if(circleCurves){
 if(mix || longsurf || astroid_cir){
     init_light_pos = GMlib::Point<GLfloat,3>(-10.0, 0.0, 0.0);
 }
-
+if(complex_surf){
+    init_light_pos = GMlib::Point<GLfloat,3>(-10.0, 0.0, 0.0);
+}
 
 
 GMlib::PointLightG *light = new GMlib::PointLightG(  GMlib::GMcolor::white(), GMlib::GMcolor::white(),
@@ -487,7 +491,7 @@ if(astroid_cir){
     astroid->sample(60,60);
 
     auto circle4 = new GMlib::PCircle<float>(radius*1.2f);
-    circle4->rotate(M_PI*0.8, GMlib::Vector<float, 3>(0.0f, 0.0f, 1.0f));
+    circle4->rotate(M_PI*1.3, GMlib::Vector<float, 3>(0.0f, 0.0f, 1.0f));
     circle4->translate(GMlib::Vector<float,3>(0.0f, 0.0f, 15.0f));
     circle4->toggleDefaultVisualizer();
     circle4->sample(60,0);
@@ -565,18 +569,203 @@ if(closed_closed){
 
 }
 
+
+if(complex_surf){
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve1(15);
+    controlPointsCurve1[0] = GMlib::Vector<float,3>(3, 2, 0);
+    controlPointsCurve1[1] = GMlib::Vector<float,3>(2, 4, 0);
+    controlPointsCurve1[2] = GMlib::Vector<float,3>(3, 5, 0);
+    controlPointsCurve1[3] = GMlib::Vector<float,3>(4.5, 3, 0);
+    controlPointsCurve1[4] = GMlib::Vector<float,3>(5.5, 2, 0);
+    controlPointsCurve1[5] = GMlib::Vector<float,3>(6.5, 3, 0);
+    controlPointsCurve1[6] = GMlib::Vector<float,3>(6, 4.5, 0);
+    controlPointsCurve1[7] = GMlib::Vector<float,3>(5, 7, 0);
+    controlPointsCurve1[8] = GMlib::Vector<float,3>(6.5, 7, 0);
+    controlPointsCurve1[9] = GMlib::Vector<float,3>(7, 5, 0);
+    controlPointsCurve1[10] = GMlib::Vector<float,3>(9, 5.5, 0);
+    controlPointsCurve1[11] = GMlib::Vector<float,3>(8, 9, 0);
+    controlPointsCurve1[12] = GMlib::Vector<float,3>(9.5, 9.5, 0);
+    controlPointsCurve1[13] = GMlib::Vector<float,3>(11, 5, 0);
+    controlPointsCurve1[14] = GMlib::Vector<float,3>(12, 7.5, 0);
+
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve2(15);
+    controlPointsCurve2[0] = GMlib::Vector<float,3>(3, 3.5, 2);
+    controlPointsCurve2[1] = GMlib::Vector<float,3>(4.5, 3, 2 );
+    controlPointsCurve2[2] = GMlib::Vector<float,3>(5.5, 2, 2);
+    controlPointsCurve2[3] = GMlib::Vector<float,3>(6.5, 3, 2);
+    controlPointsCurve2[4] = GMlib::Vector<float,3>(6, 4.5, 2);
+    controlPointsCurve2[5] = GMlib::Vector<float,3>(5, 7, 2);
+    controlPointsCurve2[6] = GMlib::Vector<float,3>(6.5, 7, 2);
+    controlPointsCurve2[7] = GMlib::Vector<float,3>(7, 5, 2);
+    controlPointsCurve2[8] = GMlib::Vector<float,3>(9, 5.5, 2);
+    controlPointsCurve2[9] = GMlib::Vector<float,3>(8, 9, 2);
+    controlPointsCurve2[10] = GMlib::Vector<float,3>(9.5, 9.5, 2);
+    controlPointsCurve2[11] = GMlib::Vector<float,3>(11, 5, 2);
+    controlPointsCurve2[12] = GMlib::Vector<float,3>(12.5, 6, 2);
+    controlPointsCurve2[13] = GMlib::Vector<float,3>(13, 7.5, 2);
+    controlPointsCurve2[14] = GMlib::Vector<float,3>(12, 9.5, 2);
+
+
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve3(16);
+    controlPointsCurve3[0] = GMlib::Vector<float,3>(4, 3.5, 5);
+    controlPointsCurve3[1] = GMlib::Vector<float,3>(5.5, 2, 5);
+    controlPointsCurve3[2] = GMlib::Vector<float,3>(6.5, 3, 5);
+    controlPointsCurve3[3] = GMlib::Vector<float,3>(6, 4.5, 5);
+    controlPointsCurve3[4] = GMlib::Vector<float,3>(5, 7, 5);
+    controlPointsCurve3[5] = GMlib::Vector<float,3>(6.5, 7, 5);
+    controlPointsCurve3[6] = GMlib::Vector<float,3>(7, 5, 5);
+    controlPointsCurve3[7] = GMlib::Vector<float,3>(9, 5.5, 5);
+    controlPointsCurve3[8] = GMlib::Vector<float,3>(8, 9, 5);
+    controlPointsCurve3[9] = GMlib::Vector<float,3>(9.5, 9.5, 5);
+    controlPointsCurve3[10] = GMlib::Vector<float,3>(11, 5, 5);
+    controlPointsCurve3[11] = GMlib::Vector<float,3>(12.5, 6, 5);
+    controlPointsCurve3[12] = GMlib::Vector<float,3>(13, 7.5, 5);
+    controlPointsCurve3[13] = GMlib::Vector<float,3>(12, 13, 5);
+    controlPointsCurve3[14] = GMlib::Vector<float,3>(13, 13, 5);
+    controlPointsCurve3[15] = GMlib::Vector<float,3>(13.5, 9.5, 5);
+
+
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve4(17);
+    controlPointsCurve4[0] = GMlib::Vector<float,3>(5, 3.5, 7);
+    controlPointsCurve4[1] = GMlib::Vector<float,3>(6, 4.5, 7);
+    controlPointsCurve4[2] = GMlib::Vector<float,3>(5, 7, 7);
+    controlPointsCurve4[3] = GMlib::Vector<float,3>(6.5, 7, 7);
+    controlPointsCurve4[4] = GMlib::Vector<float,3>(7, 5, 7);
+    controlPointsCurve4[5] = GMlib::Vector<float,3>(9, 5.5, 7);
+    controlPointsCurve4[6] = GMlib::Vector<float,3>(8, 9, 7);
+    controlPointsCurve4[7] = GMlib::Vector<float,3>(9.5, 9.5, 7);
+    controlPointsCurve4[8] = GMlib::Vector<float,3>(11, 5, 7);
+    controlPointsCurve4[9] = GMlib::Vector<float,3>(12.5, 6, 7);
+    controlPointsCurve4[10] = GMlib::Vector<float,3>(13, 7.5, 7);
+    controlPointsCurve4[11] = GMlib::Vector<float,3>(12, 13, 7);
+    controlPointsCurve4[12] = GMlib::Vector<float,3>(13, 13, 7);
+    controlPointsCurve4[13] = GMlib::Vector<float,3>(14, 7, 7);
+    controlPointsCurve4[14] = GMlib::Vector<float,3>(15, 6, 7);
+    controlPointsCurve4[15] = GMlib::Vector<float,3>(16, 7, 7);
+    controlPointsCurve4[16] = GMlib::Vector<float,3>(16, 9, 7);
+
+
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve5(7);
+    controlPointsCurve5[0] = GMlib::Vector<float,3>(5, 5, 7);
+    controlPointsCurve5[1] = GMlib::Vector<float,3>(4, 9, 7);
+    controlPointsCurve5[2] = GMlib::Vector<float,3>(6, 10, 7);
+    controlPointsCurve5[3] = GMlib::Vector<float,3>(9, 4, 7);
+    controlPointsCurve5[4] = GMlib::Vector<float,3>(9, 6, 7);
+    controlPointsCurve5[5] = GMlib::Vector<float,3>(10, 12, 7);
+    controlPointsCurve5[6] = GMlib::Vector<float,3>(12, 10, 7);
+
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve6(6);
+    controlPointsCurve6[0] = GMlib::Vector<float,3>(3, 2, 7);
+    controlPointsCurve6[1] = GMlib::Vector<float,3>(4, 10, 7);
+    controlPointsCurve6[2] = GMlib::Vector<float,3>(8, 17, 7);
+    controlPointsCurve6[3] = GMlib::Vector<float,3>(12, 17, 7);
+    controlPointsCurve6[4] = GMlib::Vector<float,3>(16, 16, 7);
+    controlPointsCurve6[5] = GMlib::Vector<float,3>(19, 10, 7);
+
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve7(9);
+    controlPointsCurve7[0] = GMlib::Vector<float,3>(3, 3, 7);
+    controlPointsCurve7[1] = GMlib::Vector<float,3>(1, 7, 7);
+    controlPointsCurve7[2] = GMlib::Vector<float,3>(4, 9, 7);
+    controlPointsCurve7[3] = GMlib::Vector<float,3>(8, 1, 7);
+    controlPointsCurve7[4] = GMlib::Vector<float,3>(13, 5, 7);
+    controlPointsCurve7[5] = GMlib::Vector<float,3>(5, 15, 7);
+    controlPointsCurve7[6] = GMlib::Vector<float,3>(8, 18, 7);
+    controlPointsCurve7[7] = GMlib::Vector<float,3>(15, 12, 7);
+    controlPointsCurve7[8] = GMlib::Vector<float,3>(16, 17, 7);
+
+
+    GMlib::DVector<GMlib::Vector<float,3>> controlPointsCurve8(7);
+    controlPointsCurve8[0] = GMlib::Vector<float,3>(3, 3, 7);
+    controlPointsCurve8[1] = GMlib::Vector<float,3>(4, -1, 7);
+    controlPointsCurve8[2] = GMlib::Vector<float,3>(4, 13, 7);
+    controlPointsCurve8[3] = GMlib::Vector<float,3>(11, 5, 7);
+    controlPointsCurve8[4] = GMlib::Vector<float,3>(12, 8, 7);
+    controlPointsCurve8[5] = GMlib::Vector<float,3>(12, 19, 7);
+    controlPointsCurve8[6] = GMlib::Vector<float,3>(15, 15, 7);
+
+
+
+    //  Lofted test
+    auto bezier1 = new GMlib::PBezierCurve<float>(controlPointsCurve1);
+    bezier1->toggleDefaultVisualizer();
+    bezier1->translate(GMlib::Vector<float,3>(-2.0f, 5.0f, -7.0f));
+    bezier1->sample(60,0);
+
+
+    auto bezier2 = new GMlib::PBezierCurve<float>(controlPointsCurve2);
+    bezier2->translate(GMlib::Vector<float,3>(0.0f, -2.0f, -5.0f));
+    bezier2->toggleDefaultVisualizer();
+    bezier2->sample(60,0);
+
+
+    auto bezier3 = new GMlib::PBezierCurve<float>(controlPointsCurve3);
+    bezier3->translate(GMlib::Vector<float,3>(5.0f, -3.0f, -4.0f));
+    bezier3->toggleDefaultVisualizer();
+    bezier3->sample(60,0);
+
+
+    auto bezier4 = new GMlib::PBezierCurve<float>(controlPointsCurve4);
+    bezier4->translate(GMlib::Vector<float,3>(-2.0f, 3.0f, -3.0f));
+    bezier4->toggleDefaultVisualizer();
+    bezier4->sample(60,0);
+
+    auto bezier5 = new GMlib::PBezierCurve<float>(controlPointsCurve5);
+    bezier5->translate(GMlib::Vector<float,3>(2.0f, -4.0f, -1.0f));
+    bezier5->toggleDefaultVisualizer();
+    bezier5->sample(60,0);
+
+    auto bezier6 = new GMlib::PBezierCurve<float>(controlPointsCurve6);
+    bezier6->translate(GMlib::Vector<float,3>(0.0f, 0.0f, 2.0f));
+    bezier6->toggleDefaultVisualizer();
+    bezier6->sample(60,0);
+
+    auto bezier7 = new GMlib::PBezierCurve<float>(controlPointsCurve7);
+    bezier7->translate(GMlib::Vector<float,3>(0.0f, 0.0f, 5.0f));
+    bezier7->toggleDefaultVisualizer();
+    bezier7->sample(60,0);
+
+    auto bezier8 = new GMlib::PBezierCurve<float>(controlPointsCurve8);
+    bezier8->translate(GMlib::Vector<float,3>(0.0f, 0.0f, 9.0f));
+    bezier8->toggleDefaultVisualizer();
+    bezier8->sample(60,0);
+
+
+    if(showCurves){
+        this->scene()->insert(bezier1);
+        this->scene()->insert(bezier2);
+        this->scene()->insert(bezier3);
+        this->scene()->insert(bezier4);
+        this->scene()->insert(bezier5);
+        this->scene()->insert(bezier6);
+        this->scene()->insert(bezier7);
+        this->scene()->insert(bezier8);
+    }
+
+
+    loftedBaseCurves[0] = bezier1;
+    loftedBaseCurves[1] = bezier2;
+    loftedBaseCurves[2] = bezier3;
+    loftedBaseCurves[3] = bezier4;
+    loftedBaseCurves.push_back(bezier5);
+    loftedBaseCurves.push_back(bezier6);
+    loftedBaseCurves.push_back(bezier7);
+    loftedBaseCurves.push_back(bezier8);
+}
+
+
+
 auto n_viz = new GMlib::PSurfNormalsVisualizer<float,3>();
 auto d_viz = new GMlib::PSurfDerivativesVisualizer<float,3>(0,1);
 
 int sample = 100;
 auto loftedsurf = new PLoftedSurf<float>(loftedBaseCurves, sample, V_closed, blending);
 
-if(showSubSurf||default_vizu){
+if(/*showSubSurf||*/default_vizu){
    loftedsurf->toggleDefaultVisualizer();
 }
 else{
-    // loftedsurf->insertVisualizer(new PSurfZebraVisualizer<float, 3>());
-    loftedsurf->insertVisualizer(new PSurfCurvatureVisualizer<float, 3>());
+    loftedsurf->insertVisualizer(new PSurfZebraVisualizer<float, 3>());
+    // loftedsurf->insertVisualizer(new PSurfCurvatureVisualizer<float, 3>());
     // loftedsurf->insertVisualizer(new GMlib::PSurfContoursVisualizer<float, 3>());
 }
 //
@@ -633,7 +822,7 @@ if(showSubSurf){
         loftedsurf->_subS[i]->sample(sample,sample,1,1);
         loftedsurf->_subS[i]->showSelectors();
          if(!affine_trans){
-             loftedsurf->_subS[i]->translate(GMlib::Vector<float,3>( 0.0f, 0.0f, 27.0f * std::pow(-1,i)));
+             loftedsurf->_subS[i]->translate(GMlib::Vector<float,3>(0.0f, 14.0f * std::pow(-1,i), 0.0f));
          }
         this->scene()->insert(loftedsurf->_subS[i]);
     }
